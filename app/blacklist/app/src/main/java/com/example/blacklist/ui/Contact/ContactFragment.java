@@ -1,4 +1,4 @@
-package com.example.blacklist.ui.dashboard;
+package com.example.blacklist.ui.Contact;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,22 +10,22 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.blacklist.databinding.FragmentDashboardBinding;
+import com.example.blacklist.databinding.FragmentContactBinding;
 
-public class DashboardFragment extends Fragment {
+public class ContactFragment extends Fragment {
 
-    private FragmentDashboardBinding binding;
+    private FragmentContactBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        ContactViewModel dashboardViewModel =
+                new ViewModelProvider(this).get(ContactViewModel.class);
 
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = FragmentContactBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textDashboard;
-        dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+     //   final TextView textView = binding.textContact;
+     //   dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

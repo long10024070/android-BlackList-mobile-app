@@ -1,28 +1,39 @@
 package com.example.blacklist;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.role.RoleManager;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.BlockedNumberContract;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.blacklist.Telephone.BasicMobile;
-import com.example.blacklist.Telephone.BlackList;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.blacklist.databinding.ActivityMainBinding;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,68 +57,58 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         // Request Default Call app
-        requestRoleDialer();
+        requestRole();
+
+        // Try block number
+        ContentValues values = new ContentValues();
+        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, "1234567890");
+        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
+
+        // Create call channel
+        NotificationChannel channel = new NotificationChannel("10203040503", "Incoming Calls",
+                NotificationManager.IMPORTANCE_HIGH);
+        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+        channel.setSound(ringtoneUri, new AudioAttributes.Builder()
+                // Setting the AudioAttributes is important as it identifies the purpose of your
+                // notification sound.
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build());
+        NotificationManager mgr = getSystemService(NotificationManager.class);
+        mgr.createNotificationChannel(channel);
     }
 
-    public void requestRoleDialer() {
+    public void requestRole() {
         RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
         Intent intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER);
-        ActivityResultLauncher<Intent> startActivityResultLauncher =
-                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                        new ActivityResultCallback<ActivityResult>() {
-                            @Override
-                            public void onActivityResult(ActivityResult result) {
-                                if (result != null && result.getResultCode() == android.app.Activity.RESULT_OK) {
-                                    // Your app is now the default dialer app
-                                } else {
-                                    // Your app is not the default dialer app
-                                    finish();
-                                }
-                            }
-                        });
         startActivityResultLauncher.launch(intent);
     }
 
-    // Post operation for request Permission
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case BasicMobile.CALL_PHONE_REQUEST_CODE:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission is granted. Continue the action or workflow
-                    // in your app.
-                } else {
-                    // Explain to the user that the feature is unavailable because
-                    // the features requires a permission that the user has denied.
-                    // At the same time, respect the user's decision. Don't link to
-                    // system settings in an effort to convince the user to change
-                    // their decision.
+    ActivityResultLauncher<Intent> startActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result != null && result.getResultCode() == android.app.Activity.RESULT_OK) {
+                        // Your app is now the default dialer app
+                    } else {
+                        // Your app is not the default dialer app
+                    }
                 }
-                return;
-        }
-        // Other 'case' lines to check for other
-        // permissions this app might request.
-    }
+            });
 
     public void blockNumber(View view) {
         EditText phoneNumber = findViewById(R.id.BlockNumber);
-        BlackList.putBlockedNumber(this, phoneNumber.getText().toString());
+        ContentValues values = new ContentValues();
+        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, phoneNumber.getText().toString());
+        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
     }
 
-    public void callNumber(View view) {
+    public void enterBlockNumber(View view) {
+        final String defaulContent = "Enter Number to Block";
         EditText phoneNumber = findViewById(R.id.BlockNumber);
-        BasicMobile.MakeCall(this, phoneNumber.getText().toString());
+        phoneNumber.getText().clear();
     }
 
-    public void pushBlockedNumber(View view) {
 
-    }
-
-    public void pullBlockedNumber(View view) {
-
-    }
 }
