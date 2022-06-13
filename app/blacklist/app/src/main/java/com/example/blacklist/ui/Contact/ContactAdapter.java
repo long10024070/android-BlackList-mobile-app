@@ -19,7 +19,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     Activity activity;
     ArrayList<ContactModel> arrayList;
 
-    //Creact constructor
+    //Create constructor
     public ContactAdapter(Activity activity, ArrayList<ContactModel> arrayList) {
         this.activity = activity;
         this.arrayList = arrayList;
