@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void blockNumber(View view) {
         EditText phoneNumber = findViewById(R.id.BlockNumber);
-        BlackList.putBlockedNumber(this, phoneNumber.getText().toString());
+        BlackList.getInstance(this).putBlockedNumber(phoneNumber.getText().toString());
     }
 
     public void callNumber(View view) {
