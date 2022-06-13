@@ -28,6 +28,9 @@ android {
     buildFeatures {
         viewBinding true
     }
+    buildFeatures {
+        dataBinding = true
+    }
 }
 
 dependencies {
@@ -39,6 +42,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.navigation:navigation-fragment:2.4.1'
     implementation 'androidx.navigation:navigation-ui:2.4.1'
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation "androidx.recyclerview:recyclerview:1.2.1"
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0-rc01"

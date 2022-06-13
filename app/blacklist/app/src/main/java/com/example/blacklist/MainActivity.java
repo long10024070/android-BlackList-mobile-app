@@ -1,47 +1,47 @@
 package com.example.blacklist;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.role.RoleManager;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioAttributes;
-import android.media.RingtoneManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CallLog;
 import android.provider.BlockedNumberContract;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.blacklist.Telephone.BasicMobile;
+import com.example.blacklist.ui.callLogModel.CallLogItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
+import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-
 import com.example.blacklist.databinding.ActivityMainBinding;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    //private RecyclerView revCallLog ;
+    private List<CallLogItem> callLogList  ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        callLogList = new ArrayList<CallLogItem>() ;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -57,28 +57,14 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         // Request Default Call app
-        requestRole();
+        requestRoleDialer();
 
-        // Try block number
-        ContentValues values = new ContentValues();
-        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, "1234567890");
-        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
+        // Request to access call log
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG}, PackageManager.PERMISSION_GRANTED);
 
-        // Create call channel
-        NotificationChannel channel = new NotificationChannel("10203040503", "Incoming Calls",
-                NotificationManager.IMPORTANCE_HIGH);
-        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-        channel.setSound(ringtoneUri, new AudioAttributes.Builder()
-                // Setting the AudioAttributes is important as it identifies the purpose of your
-                // notification sound.
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build());
-        NotificationManager mgr = getSystemService(NotificationManager.class);
-        mgr.createNotificationChannel(channel);
     }
 
-    public void requestRole() {
+    public void requestRoleDialer() {
         RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
         Intent intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER);
         startActivityResultLauncher.launch(intent);
@@ -110,5 +96,38 @@ public class MainActivity extends AppCompatActivity {
         phoneNumber.getText().clear();
     }
 
+    public void callNumber(View view) {
+        EditText phoneNumber = findViewById(R.id.BlockNumber);
+        BasicMobile.MakeCall(this, phoneNumber.getText().toString());
+    }
+
+    public void pushBlockedNumber(View view) {
+
+    }
+
+    public void pullBlockedNumber(View view) {
+
+    }
+
+
+    public void fetchCallLog() {
+        String sortOrder = android.provider.CallLog.Calls.DATE + " DESC" ;
+        Cursor cursor  = this.getContentResolver().query(
+            CallLog.Calls.CONTENT_URI,
+                null,null,null,
+                sortOrder);
+
+        callLogList.clear();
+        while (cursor.moveToNext()) {
+            @SuppressLint("Range") String str_number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER)) ;
+            @SuppressLint("Range") String str_name = cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)) ;
+            str_name = str_name==null || str_name.equals("") ? "Unknown" : str_name;
+            callLogList.add(new CallLogItem(str_name,str_number)) ;
+        }
+    }
+
+    public List<CallLogItem> getMyCallLog() {
+        return callLogList;
+    }
 
 }
