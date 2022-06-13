@@ -1,6 +1,7 @@
 package com.example.blacklist.ui.Contact;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -35,7 +36,7 @@ public class ContactList extends MainActivity {
 
         if (ContextCompat.checkSelfPermission(ContactList.this
                 , Manifest.permission.READ_CONTACTS)
-        != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED) {
             //When permission is not granted
             //Request permission
             ActivityCompat.requestPermissions(ContactList.this
@@ -51,30 +52,30 @@ public class ContactList extends MainActivity {
         // Init uri
         Uri uri = ContactsContract.Contacts.CONTENT_URI;
         //Sort by ascending
-        String sort = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+"ASC";
+        String sort = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + "ASC";
         // Init cursor
         Cursor cursor = getContentResolver().query(
                 uri, null, null, null, sort
         );
         //Check condition
-        if (cursor.getCount() > 0){
+        if (cursor.getCount() > 0) {
             //When count is greater than 0
             //Use while loop
             while (cursor.moveToNext()) {
                 //Cursor move to next
                 //Get contact id
-                String id = cursor.getString(cursor.getColumnIndex(
+                @SuppressLint("Range") String id = cursor.getString(cursor.getColumnIndex(
                         ContactsContract.Contacts._ID
                 ));
                 //Get contact name
-                String name = cursor.getString(cursor.getColumnIndex(
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(
                         ContactsContract.Contacts.DISPLAY_NAME
                 ));
                 //Init phone uri
                 Uri uriPhone = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
                 //Init selection
                 String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-                        +" =?";
+                        + " =?";
                 //Init phone cursor
                 Cursor phoneCursor = getContentResolver().query(
                         uriPhone, null, selection
@@ -83,7 +84,7 @@ public class ContactList extends MainActivity {
                 //Check condition
                 if (phoneCursor.moveToNext()) {
                     //When phone cursor move to next
-                    String number = phoneCursor.getString(phoneCursor.getColumnIndex(
+                    @SuppressLint("Range") String number = phoneCursor.getString(phoneCursor.getColumnIndex(
                             ContactsContract.CommonDataKinds.Phone.NUMBER
                     ));
                     // Init contact model
@@ -121,5 +122,6 @@ public class ContactList extends MainActivity {
             Toast.makeText(ContactList.this, "Permission Denied."
                     , Toast.LENGTH_SHORT).show();
             checkPermission();
+        }
     }
 }

@@ -26,7 +26,7 @@ public class ContactFragment extends Fragment {
 
         binding = FragmentContactBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-        recyclerView = recyclerView.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
 
 
      //   final TextView textView = binding.textContact;
