@@ -1,15 +1,22 @@
 package com.example.blacklist;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.role.RoleManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CallLog;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
 import com.example.blacklist.Telephone.BasicMobile;
 import com.example.blacklist.Telephone.BlackList;
+import com.example.blacklist.ui.callLogModel.CallLogItem;
+import com.example.blacklist.ui.notifications.NotificationsViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.activity.result.ActivityResult;
@@ -17,20 +24,30 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.blacklist.databinding.ActivityMainBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    //private RecyclerView revCallLog ;
+    private List<CallLogItem> callLogList  ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        callLogList = new ArrayList<CallLogItem>() ;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -47,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Request Default Call app
         requestRoleDialer();
+
+        // Request to access call log
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG}, PackageManager.PERMISSION_GRANTED);
     }
 
     public void requestRoleDialer() {
@@ -109,5 +129,25 @@ public class MainActivity extends AppCompatActivity {
 
     public void pullBlockedNumber(View view) {
 
+    }
+
+    public void fetchCallLog() {
+        String sortOrder = android.provider.CallLog.Calls.DATE + " DESC" ;
+        Cursor cursor  = this.getContentResolver().query(
+            CallLog.Calls.CONTENT_URI,
+                null,null,null,
+                sortOrder);
+
+        callLogList.clear();
+        while (cursor.moveToNext()) {
+            @SuppressLint("Range") String str_number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER)) ;
+            @SuppressLint("Range") String str_name = cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)) ;
+            str_name = str_name==null || str_name.equals("") ? "Unknown" : str_name;
+            callLogList.add(new CallLogItem(str_name,str_number)) ;
+        }
+    }
+
+    public List<CallLogItem> getMyCallLog() {
+        return callLogList;
     }
 }

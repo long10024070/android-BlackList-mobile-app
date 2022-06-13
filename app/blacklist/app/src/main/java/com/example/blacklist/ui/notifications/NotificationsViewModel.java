@@ -1,19 +1,41 @@
 package com.example.blacklist.ui.notifications;
 
-import androidx.lifecycle.LiveData;
+import static android.app.PendingIntent.getActivity;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.blacklist.MainActivity;
+import com.example.blacklist.ui.callLogModel.CallLogItem;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class NotificationsViewModel extends ViewModel {
 
-    private final MutableLiveData<String> mText;
-
+    private final MutableLiveData<List<CallLogItem>> mListCallLogLiveData;
+    private List<CallLogItem> mListCallLog ;
     public NotificationsViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is notifications fragment");
+        mListCallLogLiveData = new MutableLiveData<>() ;
+        initData() ;
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    private void initData() {
+        mListCallLog = new ArrayList<>() ;
+        // get call logs
+
+        //
+
+        mListCallLogLiveData.setValue(mListCallLog);
     }
+
+    public MutableLiveData<List<CallLogItem>> getListCallLogLiveData() {
+        return mListCallLogLiveData;
+    }
+
+    public void setCallLog(List<CallLogItem> callLogs) {
+        mListCallLog = callLogs;
+        mListCallLogLiveData.setValue(mListCallLog) ;
+    }
+
 }
