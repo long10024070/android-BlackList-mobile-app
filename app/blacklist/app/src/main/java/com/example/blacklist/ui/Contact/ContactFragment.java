@@ -29,8 +29,6 @@ public class ContactFragment extends Fragment {
         recyclerView = recyclerView.findViewById(R.id.recycler_view);
 
 
-
-
      //   final TextView textView = binding.textContact;
      //   dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
