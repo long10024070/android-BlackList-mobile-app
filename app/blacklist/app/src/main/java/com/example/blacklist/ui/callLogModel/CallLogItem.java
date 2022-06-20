@@ -3,10 +3,12 @@ package com.example.blacklist.ui.callLogModel;
 public class CallLogItem {
     public String phoneName ;
     public String phoneNumber ;
+    public String callType ;
 
-    public CallLogItem(String phoneName, String phoneNumber) {
+    public CallLogItem(String phoneName, String phoneNumber, String callType) {
         this.phoneNumber = phoneNumber ;
         this.phoneName = phoneName ;
+        this.callType = callType ;
     }
 
     public String getPhoneNumber() {
@@ -23,6 +25,10 @@ public class CallLogItem {
 
     public void setPhoneName(String phoneName) {
         this.phoneName = phoneName;
+    }
+
+    public String getCallType() {
+        return callType;
     }
 }
 

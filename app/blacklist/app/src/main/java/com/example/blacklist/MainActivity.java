@@ -124,7 +124,34 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("Range") String str_number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER)) ;
             @SuppressLint("Range") String str_name = cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)) ;
             str_name = str_name==null || str_name.equals("") ? "Unknown" : str_name;
-            callLogList.add(new CallLogItem(str_name,str_number)) ;
+            @SuppressLint("Range") String str_call_type = cursor.getString(cursor.getColumnIndex(CallLog.Calls.TYPE)) ;
+
+            switch (Integer.parseInt(str_call_type)) {
+                case CallLog.Calls.INCOMING_TYPE:
+                    str_call_type = "Incoming" ;
+                    break;
+                case CallLog.Calls.OUTGOING_TYPE:
+                    str_call_type = "Outgoing";
+                    break;
+                case CallLog.Calls.MISSED_TYPE:
+                    str_call_type = "Missed";
+                    break;
+                case CallLog.Calls.VOICEMAIL_TYPE:
+                    str_call_type = "Voicemail";
+                    break;
+                case CallLog.Calls.REJECTED_TYPE:
+                    str_call_type = "Rejected";
+                    break;
+                case CallLog.Calls.BLOCKED_TYPE:
+                    str_call_type = "Blocked";
+                    break;
+                case CallLog.Calls.ANSWERED_EXTERNALLY_TYPE:
+                    str_call_type = "Externally Answered";
+                    break;
+                default:
+                    str_call_type = "NA";
+            }
+            callLogList.add(new CallLogItem(str_name,str_number,str_call_type)) ;
         }
     }
 
