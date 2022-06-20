@@ -8,16 +8,24 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.blacklist.MainActivity;
 import com.example.blacklist.R;
 import com.example.blacklist.databinding.FragmentContactBinding;
+import com.example.blacklist.ui.callLogModel.CallLogAdapter;
+import com.example.blacklist.ui.callLogModel.CallLogItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContactFragment extends Fragment {
 
     private FragmentContactBinding binding;
-    RecyclerView recyclerView;
+    private RecyclerView recyclerView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -28,9 +36,18 @@ public class ContactFragment extends Fragment {
         View root = binding.getRoot();
         recyclerView = binding.recyclerView;
 
+        contactViewModel.getContactListLiveData().observe(getViewLifecycleOwner(), new Observer<ArrayList<ContactModel>>() {
+            @Override
+            public void onChanged(ArrayList<ContactModel> contactList) {
+                ContactAdapter contactAdapter = new ContactAdapter(contactList);
+                recyclerView.setAdapter(contactAdapter);
+            }
+        });
 
-     //   final TextView textView = binding.textContact;
-     //   dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+
+        MainActivity activity = (MainActivity) getActivity();
+        activity.getContactList();
+        contactViewModel.setContactList(activity.getMyContactList());
         return root;
     }
 

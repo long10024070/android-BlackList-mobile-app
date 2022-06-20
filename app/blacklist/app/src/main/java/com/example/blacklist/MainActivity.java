@@ -11,11 +11,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.provider.BlockedNumberContract;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.EditText;
 
 import com.example.blacklist.Telephone.BasicMobile;
 import com.example.blacklist.Telephone.BlackList;
+import com.example.blacklist.ui.Contact.ContactModel;
 import com.example.blacklist.ui.callLogModel.CallLogItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.activity.result.ActivityResult;
@@ -24,6 +26,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     //private RecyclerView revCallLog ;
     private List<CallLogItem> callLogList  ;
+    private ArrayList<ContactModel> contactList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Request to access call log
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG}, PackageManager.PERMISSION_GRANTED);
+
+        // Request to access contact list
+        if (ContextCompat.checkSelfPermission(MainActivity.this
+                , Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            //When permission is not granted
+            //Request permission
+            ActivityCompat.requestPermissions(MainActivity.this
+                    , new String[]{Manifest.permission.READ_CONTACTS}, 100);
+        }
 
     }
 
@@ -128,8 +142,67 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void getContactList() {
+        // Init uri
+        Uri uri = ContactsContract.Contacts.CONTENT_URI;
+        //Sort by ascending
+        String sort = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + "ASC";
+        // Init cursor
+        Cursor cursor = getContentResolver().query(
+                uri, null, null, null, sort
+        );
+        //Check condition
+        if (cursor.getCount() > 0) {
+            //When count is greater than 0
+            //Use while loop
+            while (cursor.moveToNext()) {
+                //Cursor move to next
+                //Get contact id
+                @SuppressLint("Range") String id = cursor.getString(cursor.getColumnIndex(
+                        ContactsContract.Contacts._ID
+                ));
+                //Get contact name
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME
+                ));
+                //Init phone uri
+                Uri uriPhone = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+                //Init selection
+                String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+                        + " =?";
+                //Init phone cursor
+                Cursor phoneCursor = getContentResolver().query(
+                        uriPhone, null, selection
+                        , new String[]{id}, null
+                );
+                //Check condition
+                if (phoneCursor.moveToNext()) {
+                    //When phone cursor move to next
+                    @SuppressLint("Range") String number = phoneCursor.getString(phoneCursor.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Phone.NUMBER
+                    ));
+                    // Init contact model
+                    ContactModel model = new ContactModel();
+                    //Set name
+                    model.setName(name);
+                    //Set number
+                    model.setNumber(number);
+                    //Add model in array list
+                    contactList.add(model);
+                    //Close phone cursor
+                    phoneCursor.close();
+                }
+            }
+            //Close cursor
+            cursor.close();
+        }
+    }
     public List<CallLogItem> getMyCallLog() {
         return callLogList;
+    }
+
+    public ArrayList<ContactModel> getMyContactList() {
+        return contactList;
     }
 
 }

@@ -4,16 +4,34 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.blacklist.ui.callLogModel.CallLogItem;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContactViewModel extends ViewModel {
 
-    private final MutableLiveData<String> mText;
+    private final MutableLiveData<ArrayList<ContactModel>> mContactListLiveData;
+    private ArrayList<ContactModel> mContactList;
 
     public ContactViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+        mContactListLiveData = new MutableLiveData<>();
+        initData();
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    private void initData() {
+        mContactList = new ArrayList<>();
+
+        //set value
+        mContactListLiveData.setValue(mContactList);
+    }
+
+    public MutableLiveData<ArrayList<ContactModel>> getContactListLiveData() {
+        return mContactListLiveData;
+    }
+
+    public void setContactList(ArrayList<ContactModel> contactList) {
+        mContactList = contactList;
+        mContactListLiveData.setValue(mContactList);
     }
 }
