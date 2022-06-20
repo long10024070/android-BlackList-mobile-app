@@ -16,12 +16,10 @@ import java.util.ArrayList;
 
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
     //Init
-    Activity activity;
     ArrayList<ContactModel> arrayList;
 
     //Create constructor
-    public ContactAdapter(Activity activity, ArrayList<ContactModel> arrayList) {
-        this.activity = activity;
+    public ContactAdapter(ArrayList<ContactModel> arrayList) {
         this.arrayList = arrayList;
         notifyDataSetChanged();
     }
