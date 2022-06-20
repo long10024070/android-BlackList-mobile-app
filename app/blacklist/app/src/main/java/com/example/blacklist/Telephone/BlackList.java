@@ -27,7 +27,7 @@ public class BlackList {
         return instance;
     }
 
-    public List<String> getBlockedNumbers() {
+    public List<String> getBlackListNumbers() {
         Log.w("BlackList: Get blocked", "");
         Cursor c = ctx.getContentResolver().query(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
                 new String[]{BlockedNumberContract.BlockedNumbers.COLUMN_ID,
@@ -41,6 +41,14 @@ public class BlackList {
         }
         c.close();
         return blockednumbers;
+    }
+
+    public List<String> getMyBlackListNumbers() {
+        return new ArrayList<String>();
+    }
+
+    public boolean inBlackList(String number) {
+        return false;
     }
 
     public void putBlockedNumber(String number) {

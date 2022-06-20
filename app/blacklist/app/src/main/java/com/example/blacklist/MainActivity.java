@@ -11,9 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.provider.BlockedNumberContract;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import com.example.blacklist.Service.BlackListService;
 import com.example.blacklist.Telephone.BasicMobile;
 import com.example.blacklist.Telephone.BlackList;
 import com.example.blacklist.ui.callLogModel.CallLogItem;
@@ -38,8 +40,13 @@ public class MainActivity extends AppCompatActivity {
     //private RecyclerView revCallLog ;
     private List<CallLogItem> callLogList  ;
 
+    private BlackListService mService;
+    private boolean mBound = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i("BlackList", "ON CREATE");
+
         super.onCreate(savedInstanceState);
 
         callLogList = new ArrayList<CallLogItem>() ;
@@ -63,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         // Request to access call log
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG}, PackageManager.PERMISSION_GRANTED);
 
+        // Start Blacklist auto config with Database at every moment (if not started)
+        Intent serviceIntent = new Intent(this, BlackListService.class);
+        this.startForegroundService(serviceIntent);
     }
 
     public void requestRoleDialer() {
