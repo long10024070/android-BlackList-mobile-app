@@ -44,30 +44,47 @@ public class BlackList {
     }
 
     public List<String> getMyBlackListNumbers() {
-        return new ArrayList<String>();
+        appFirebase db = appFirebase.getInstance(ctx);
+        return new ArrayList<>(db.getMyblacklist());
+    }
+
+    public List<String> getSubcribeNumbers() {
+        appFirebase db = appFirebase.getInstance(ctx);
+        return new ArrayList<>(db.getMySubcribe());
     }
 
     public boolean inBlackList(String number) {
-        return false;
+        List<String> blacklist = getBlackListNumbers();
+        return blacklist.contains(number);
     }
 
-    public void putBlockedNumber(String number) {
+    public void noDBputBlockedNumber(String number) {
         Log.w("BlackList: Block", number);
         ContentValues values = new ContentValues();
         values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, number);
         Uri uri = ctx.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
+    }
+
+    // Nên dùng hàm này để đồng bộ với DB
+    public void putBlockedNumber(String number) {
+        noDBputBlockedNumber(number);
 
         // To Database
         appFirebase db = appFirebase.getInstance(ctx);
         db.addBlackListNumber(number);
     }
 
-    public void deleteBlockedNumber(String number) {
+    public void noDBdeleteBlockedNumber(String number) {
         Log.w("BlackList: Unblock", number);
         ContentValues values = new ContentValues();
         values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, number);
         Uri uri = ctx.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
         ctx.getContentResolver().delete(uri, null, null);
+    }
+
+    // Nên dùng hàm này để đồng bộ với DB
+    public void deleteBlockedNumber(String number) {
+        noDBdeleteBlockedNumber(number);
 
         // To Database
         appFirebase db = appFirebase.getInstance(ctx);
