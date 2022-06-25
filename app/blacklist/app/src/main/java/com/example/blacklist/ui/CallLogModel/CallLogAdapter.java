@@ -1,4 +1,4 @@
-package com.example.blacklist.ui.callLogModel;
+package com.example.blacklist.ui.CallLogModel;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,6 +49,9 @@ public class CallLogAdapter extends RecyclerView.Adapter<CallLogAdapter.CallLogV
             case "Blocked" :
                 holder.imgCallType.setImageResource(R.drawable.call_blocked);
                 break ;
+            case "Rejected" :
+                holder.imgCallType.setImageResource(R.drawable.call_rejected);
+                break;
         }
     }
 

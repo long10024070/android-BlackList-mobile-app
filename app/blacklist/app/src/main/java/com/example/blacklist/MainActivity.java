@@ -20,7 +20,7 @@ import com.example.blacklist.Service.BlackListService;
 import com.example.blacklist.Telephone.BasicMobile;
 import com.example.blacklist.Telephone.BlackList;
 import com.example.blacklist.ui.Contact.ContactModel;
-import com.example.blacklist.ui.callLogModel.CallLogItem;
+import com.example.blacklist.ui.CallLogModel.CallLogItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     //private RecyclerView revCallLog ;
     private List<CallLogItem> callLogList  ;
-    private ArrayList<ContactModel> contactList;
+    private List<ContactModel> contactList;
 
     private BlackListService mService;
     private boolean mBound = false;
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         callLogList = new ArrayList<CallLogItem>() ;
+        contactList = new ArrayList<ContactModel>() ;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications, R.id.navigation_my_black_list)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
@@ -183,11 +184,12 @@ public class MainActivity extends AppCompatActivity {
         // Init uri
         Uri uri = ContactsContract.Contacts.CONTENT_URI;
         //Sort by ascending
-        String sort = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + "ASC";
+        String sort = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC";
         // Init cursor
         Cursor cursor = getContentResolver().query(
                 uri, null, null, null, sort
         );
+        contactList.clear();
         //Check condition
         if (cursor.getCount() > 0) {
             //When count is greater than 0
@@ -219,13 +221,13 @@ public class MainActivity extends AppCompatActivity {
                             ContactsContract.CommonDataKinds.Phone.NUMBER
                     ));
                     // Init contact model
-                    ContactModel model = new ContactModel();
+                    //ContactModel model = new ContactModel();
                     //Set name
-                    model.setName(name);
+                    //model.setName(name);
                     //Set number
-                    model.setNumber(number);
+                    //model.setNumber(number);
                     //Add model in array list
-                    contactList.add(model);
+                    contactList.add(new ContactModel(name,number));
                     //Close phone cursor
                     phoneCursor.close();
                 }
@@ -238,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         return callLogList;
     }
 
-    public ArrayList<ContactModel> getMyContactList() {
+    public List<ContactModel> getMyContactList() {
         return contactList;
     }
 

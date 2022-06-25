@@ -1,18 +1,15 @@
 package com.example.blacklist.ui.Contact;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-
-import com.example.blacklist.ui.callLogModel.CallLogItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContactViewModel extends ViewModel {
 
-    private final MutableLiveData<ArrayList<ContactModel>> mContactListLiveData;
-    private ArrayList<ContactModel> mContactList;
+    private final MutableLiveData<List<ContactModel>> mContactListLiveData;
+    private List<ContactModel> mContactList;
 
     public ContactViewModel() {
         mContactListLiveData = new MutableLiveData<>();
@@ -26,11 +23,11 @@ public class ContactViewModel extends ViewModel {
         mContactListLiveData.setValue(mContactList);
     }
 
-    public MutableLiveData<ArrayList<ContactModel>> getContactListLiveData() {
+    public MutableLiveData<List<ContactModel>> getContactListLiveData() {
         return mContactListLiveData;
     }
 
-    public void setContactList(ArrayList<ContactModel> contactList) {
+    public void setContactList(List<ContactModel> contactList) {
         mContactList = contactList;
         mContactListLiveData.setValue(mContactList);
     }

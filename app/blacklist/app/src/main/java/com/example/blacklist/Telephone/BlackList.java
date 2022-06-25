@@ -44,7 +44,11 @@ public class BlackList {
     }
 
     public List<String> getMyBlackListNumbers() {
-        return new ArrayList<String>();
+        List<String> tmpList = new ArrayList<>() ;
+        tmpList.add("113");
+        tmpList.add("114");
+        tmpList.add("115");
+        return tmpList;
     }
 
     public boolean inBlackList(String number) {

@@ -5,8 +5,7 @@ import static android.app.PendingIntent.getActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.blacklist.MainActivity;
-import com.example.blacklist.ui.callLogModel.CallLogItem;
+import com.example.blacklist.ui.CallLogModel.CallLogItem;
 
 import java.util.ArrayList;
 import java.util.List;
