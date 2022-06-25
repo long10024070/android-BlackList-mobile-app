@@ -2,7 +2,13 @@ package com.example.blacklist.ui.Contact;
 
 public class ContactModel {
 
-    String name, number;
+    public String name ;
+    public String number ;
+
+    public ContactModel (String name, String number) {
+        this.name = name ;
+        this.number = number ;
+    }
 
     public String getName() {
         return name;

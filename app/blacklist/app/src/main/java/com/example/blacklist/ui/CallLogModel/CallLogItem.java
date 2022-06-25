@@ -1,4 +1,4 @@
-package com.example.blacklist.ui.callLogModel;
+package com.example.blacklist.ui.CallLogModel;
 
 public class CallLogItem {
     public String phoneName ;

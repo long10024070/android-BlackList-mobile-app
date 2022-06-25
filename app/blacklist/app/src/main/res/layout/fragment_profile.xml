@@ -29,11 +29,12 @@
         android:id="@+id/switch_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:text="@string/enable_list"
-        android:textSize="20sp"
         android:textColor="@color/purple_700"
-        app:layout_constraintTop_toBottomOf="@id/profile_number"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_number" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

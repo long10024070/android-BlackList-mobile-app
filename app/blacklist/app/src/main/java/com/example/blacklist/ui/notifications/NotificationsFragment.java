@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.blacklist.MainActivity;
 import com.example.blacklist.databinding.FragmentNotificationsBinding;
-import com.example.blacklist.ui.callLogModel.CallLogItem;
-import com.example.blacklist.ui.callLogModel.CallLogAdapter;
+import com.example.blacklist.ui.CallLogModel.CallLogItem;
+import com.example.blacklist.ui.CallLogModel.CallLogAdapter;
 
 import java.util.List;
 
