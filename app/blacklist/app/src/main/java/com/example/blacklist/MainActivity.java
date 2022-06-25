@@ -2,6 +2,7 @@ package com.example.blacklist;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.role.RoleManager;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -72,16 +73,15 @@ public class MainActivity extends AppCompatActivity {
         requestRoleDialer();
 
         // Request to access call log
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG}, PackageManager.PERMISSION_GRANTED);
-
-        // Request to access contact list
-        if (ContextCompat.checkSelfPermission(MainActivity.this
-                , Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED) {
-            //When permission is not granted
-            //Request permission
-            ActivityCompat.requestPermissions(MainActivity.this
-                    , new String[]{Manifest.permission.READ_CONTACTS}, 100);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS}, PackageManager.PERMISSION_GRANTED);
+//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED)
+//                finish();
+            requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
+            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
+            requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_NUMBERS);
         }
 
         // Start Blacklist auto config with Database at every moment (if not started)
@@ -104,7 +104,24 @@ public class MainActivity extends AppCompatActivity {
                         // Your app is now the default dialer app
                     } else {
                         // Your app is not the default dialer app
+                        finish();
                     }
+                }
+            });
+
+    private ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                    finish();
                 }
             });
 

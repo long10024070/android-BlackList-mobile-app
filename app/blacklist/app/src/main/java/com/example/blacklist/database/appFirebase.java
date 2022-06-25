@@ -52,11 +52,11 @@ public class appFirebase {
         Log.d("BlackList", "NEW appFirebase Instance");
         ctx = context;
         TelephonyManager tMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions((Activity) ctx, new String[]{Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 2);
+        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
         phone_number = tMgr.getLine1Number();
-        if (phone_number == null || phone_number == "")
+        if (phone_number == null || phone_number.equals(""))
             phone_number = DEFAULT_PHONE_NUMBER;
 
         phone_number = phone_number.replace("+","");
@@ -275,5 +275,9 @@ public class appFirebase {
             mysubcribe.add(pair.getKey());
         }
         return mysubcribe;
+    }
+
+    public Set<String> getMysubcribeBlacklist() {
+        return new TreeSet<>(subcribeBlacklistcount.keySet());
     }
 }

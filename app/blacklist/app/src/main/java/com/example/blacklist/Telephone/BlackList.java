@@ -11,6 +11,7 @@ import com.example.blacklist.database.appFirebase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BlackList {
     private static BlackList instance = null;
@@ -44,8 +45,19 @@ public class BlackList {
     }
 
     public List<String> getMyBlackListNumbers() {
+        List<String> blacklist = getBlackListNumbers();
+
         appFirebase db = appFirebase.getInstance(ctx);
-        return new ArrayList<>(db.getMyblacklist());
+        Set<String> myBlacklist = db.getMyblacklist();
+        Set<String> subcribeBlacklist = db.getMysubcribeBlacklist();
+
+        for (String number : blacklist) {
+            if (!myBlacklist.contains(number) && !subcribeBlacklist.contains(number)) {
+                myBlacklist.add(number);
+                putBlockedNumber(number);
+            }
+        }
+        return new ArrayList<>(myBlacklist);
     }
 
     public List<String> getSubcribeNumbers() {
