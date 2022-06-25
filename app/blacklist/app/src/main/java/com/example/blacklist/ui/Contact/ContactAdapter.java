@@ -50,7 +50,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
         //Set number
         holder.tvNumber.setText(model.getNumber());
 
-        Boolean isBlackList = BlackList.getInstance(context).inBlackList(model.getNumber());
+        Boolean isBlackList = BlackList.getInstance(context).inBlackList(generalizePhoneNumber(model.getNumber()));
         holder.sBlackList.setChecked(isBlackList);
 
         holder.sBlackList.setOnClickListener(new View.OnClickListener() {
