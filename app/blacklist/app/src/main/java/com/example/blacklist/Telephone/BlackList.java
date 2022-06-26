@@ -61,8 +61,12 @@ public class BlackList {
     }
 
     public List<String> getSubcribeNumbers() {
-        appFirebase db = appFirebase.getInstance(ctx);
-        return new ArrayList<>(db.getMySubcribe());
+//        appFirebase db = appFirebase.getInstance(ctx);
+//        return new ArrayList<>(db.getMySubcribe());
+        List<String> test = new ArrayList<String>() ;
+        test.add("1234") ;
+        test.add("4321") ;
+        return test ;
     }
 
     public boolean inBlackList(String number) {
@@ -113,5 +117,8 @@ public class BlackList {
         // To Database
         appFirebase db = appFirebase.getInstance(ctx);
         db.unsubcribeUser(number);
+    }
+    public boolean hasRecommend() {
+        return false;
     }
 }

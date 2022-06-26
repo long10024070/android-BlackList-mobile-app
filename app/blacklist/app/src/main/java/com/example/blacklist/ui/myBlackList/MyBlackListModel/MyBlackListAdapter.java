@@ -43,11 +43,11 @@ public class MyBlackListAdapter extends RecyclerView.Adapter <MyBlackListAdapter
         holder.imgDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Toast.makeText(holder.itemView.getContext(),mMyBlackList.get(holder.getAbsoluteAdapterPosition()).getPhoneNumber(), Toast.LENGTH_SHORT).show();
                 BlackList.getInstance(context).deleteBlockedNumber(mMyBlackList.get(holder.getAbsoluteAdapterPosition()).getPhoneNumber());
                 mMyBlackList.remove(holder.getAbsoluteAdapterPosition());
                 notifyItemRemoved(holder.getAbsoluteAdapterPosition());
                 notifyItemRangeChanged(holder.getAbsoluteAdapterPosition(), getItemCount());
+                Toast.makeText(holder.itemView.getContext(),"Unblock successfully", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -10,40 +10,39 @@
         android:id="@+id/BlockNumber"
         android:layout_width="275dp"
         android:layout_height="48dp"
-        android:layout_marginTop="240dp"
+        android:layout_marginTop="76dp"
         android:ems="10"
         android:gravity="center"
         android:hint="Enter Phone Number To Block"
         android:inputType="phone"
         android:minHeight="48dp"
-        app:layout_constraintBottom_toTopOf="@+id/blockBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.423" />
+        app:layout_constraintTop_toBottomOf="@+id/AppTittle" />
 
     <Button
         android:id="@+id/blockBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="232dp"
+        android:layout_marginTop="184dp"
         android:onClick="blockNumber"
+
         android:text="Block"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/BlockNumber" />
 
     <TextView
         android:id="@+id/AppTittle"
         android:layout_width="212dp"
         android:layout_height="54dp"
-        android:layout_marginTop="124dp"
+        android:layout_marginTop="132dp"
         android:text="Welcome to Black List App"
         android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

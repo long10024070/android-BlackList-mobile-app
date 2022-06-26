@@ -25,7 +25,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class appFirebase {
-    private static final String DEFAULT_PHONE_NUMBER = "DEFAULT";
+    public static final String DEFAULT_PHONE_NUMBER = "DEFAULT";
     private static final String IN_BLACKLIST = "BlackNumber";
     private static final String IN_WHITELIST = "WhiteNumber";
     private static final String SUBCRIBE = "IsSubcribe";

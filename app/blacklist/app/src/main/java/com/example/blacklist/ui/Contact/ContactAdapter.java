@@ -59,11 +59,11 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
                 //Toast.makeText(holder.itemView.getContext(),holder.sBlackList.isChecked() ? "True" : "False", Toast.LENGTH_SHORT).show();
                 if (holder.sBlackList.isChecked()) {
                     BlackList.getInstance(context).putBlockedNumber(generalizePhoneNumber(model.getNumber()));
-                    //Toast.makeText(holder.itemView.getContext(),generalizePhoneNumber(model.getNumber()), Toast.LENGTH_SHORT).show();
-
+                    Toast.makeText(holder.itemView.getContext(),"Block successfully!", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     BlackList.getInstance(context).deleteBlockedNumber(generalizePhoneNumber(model.getNumber()));
+                    Toast.makeText(holder.itemView.getContext(),"Unblock successfully!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
