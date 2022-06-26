@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,7 +47,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ProfileV
         holder.subcribeDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //BlackList.getInstance(context).deleteBlockedNumber(mMyBlackList.get(holder.getAbsoluteAdapterPosition()).getPhoneNumber());
+                BlackList.getInstance(context).unsubcribeUser(profileItem.getSubcribeItem());
                 mProfileList.remove(holder.getAbsoluteAdapterPosition());
                 notifyItemRemoved(holder.getAbsoluteAdapterPosition());
                 notifyItemRangeChanged(holder.getAbsoluteAdapterPosition(), getItemCount());
@@ -66,6 +67,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.ProfileV
         private ImageView subcribeDelete ;
         private EditText subcribeEnterItem ;
         private Button addButon ;
+        private Switch isSubDefault ;
 
         public ProfileViewHolder (@NonNull View itemView) {
             super(itemView) ;

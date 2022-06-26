@@ -34,6 +34,9 @@ public class ProfileViewModel extends ViewModel {
         if (profileItem == null || profileItem.getSubcribeItem().equals("")) {
             return;
         }
+        for (int i = 0 ; i < mProfileList.size() ; ++i) {
+            if (mProfileList.get(i).getSubcribeItem().equals(profileItem.subcribeItem)) return;
+        }
         mProfileList.add(profileItem) ;
         mProfileLiveData.setValue(mProfileList);
     }
