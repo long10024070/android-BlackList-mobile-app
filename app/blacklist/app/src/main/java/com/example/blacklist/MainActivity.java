@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<CallLogItem> callLogList;
     private List<ContactModel> contactList;
+
+    private static Boolean PermissionSignal = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,14 +94,14 @@ public class MainActivity extends AppCompatActivity {
             requestRoleDialer();
         }
 
-        // Start Service
-        if (FullPermissionRole()) {
-            Intent serviceIntent = new Intent(this, BlackListService.class);
-            this.startForegroundService(serviceIntent);
-        }
-
-        while (!FullPermissionRole()) {}
+        // Request Phone Number
         RequestPhoneNumberIFNEEDDED();
+
+        // Start Service
+//        if (FullPermissionRole()) {
+//            Intent serviceIntent = new Intent(this, BlackListService.class);
+//            this.startForegroundService(serviceIntent);
+//        }
     }
 
     public boolean FullPermission() {
@@ -130,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 // Permission is granted. Continue the action or workflow
                 // in your app.
                 if (FullPermissionRole()) {
+//                    RequestPhoneNumberIFNEEDDED();
                     Context ctx = MainActivity.this;
                     Intent serviceIntent = new Intent(ctx, BlackListService.class);
                     ctx.startForegroundService(serviceIntent);
@@ -160,8 +164,9 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result != null && result.getResultCode() == android.app.Activity.RESULT_OK) {
                         // Your app is now the default dialer app
-                        Context ctx = MainActivity.this;
                         if (FullPermissionRole()) {
+//                            RequestPhoneNumberIFNEEDDED();
+                            Context ctx = MainActivity.this;
                             Intent serviceIntent = new Intent(ctx, BlackListService.class);
                             ctx.startForegroundService(serviceIntent);
                         }
@@ -296,9 +301,14 @@ public class MainActivity extends AppCompatActivity {
                             public void onActivityResult(ActivityResult result) {
                                 try {
                                     String phoneNumber = Identity.getSignInClient(MainActivity.this).getPhoneNumberFromIntent(result.getData());
-                                    Log.d("BlackList", "Phone Number Hint " + phoneNumber);
-                                    appFirebase db = appFirebase.getInstance(MainActivity.this);
-                                    db.setPhone_number(phoneNumber);
+                                    SharedPreferences sharedPref = MainActivity.this.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = sharedPref.edit();
+                                    editor.putString(Memory.PHONE_NUMBER_KEY, appFirebase.standartNumber(phoneNumber));
+                                    editor.apply();
+                                    if (FullPermissionRole()) {
+                                        appFirebase db = appFirebase.getInstance(MainActivity.this);
+                                        db.setPhone_number(phoneNumber);
+                                    }
 
                                 } catch (Exception e) {
                                     Log.e("BlackList", "Phone Number Hint failed");
@@ -322,8 +332,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void RequestPhoneNumberIFNEEDDED() {
-        appFirebase db = appFirebase.getInstance(this);
-        if (db.getPhone_number().equals(appFirebase.DEFAULT_PHONE_NUMBER))
+        SharedPreferences sharedPref = this.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+        String phone_number = sharedPref.getString(Memory.PHONE_NUMBER_KEY, appFirebase.DEFAULT_PHONE_NUMBER);
+        if (phone_number.equals(appFirebase.DEFAULT_PHONE_NUMBER))
             RequestPhoneNumber();
     }
 }

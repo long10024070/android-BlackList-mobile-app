@@ -11,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.example.blacklist.MainActivity;
+import com.example.blacklist.Memory;
 import com.example.blacklist.Telephone.BlackList;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,8 +60,8 @@ public class appFirebase {
 //        database.setPersistenceEnabled(true);
 
         if (_phone_number.equals(DEFAULT_PHONE_NUMBER)) {
-            SharedPreferences sharedPref = ctx.getSharedPreferences("BlackList", Context.MODE_PRIVATE);
-            _phone_number = sharedPref.getString("phone-number", DEFAULT_PHONE_NUMBER);
+            SharedPreferences sharedPref = ctx.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+            _phone_number = sharedPref.getString(Memory.PHONE_NUMBER_KEY, appFirebase.DEFAULT_PHONE_NUMBER);
         }
 
         phone_number = _phone_number;
@@ -230,7 +232,7 @@ public class appFirebase {
         }
     }
 
-    public String standartNumber(String _number) {
+    public static String standartNumber(String _number) {
         String number = "";
         for (char c : _number.toCharArray())
             if ('0' <= c && c <= '9')
@@ -263,9 +265,9 @@ public class appFirebase {
                 blackList.noDBdeleteBlockedNumber(blockedNumber);
         }
         this.phone_number = standartNumber(phone_number);
-        SharedPreferences sharedPref = ctx.getSharedPreferences("phone-number", Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = ctx.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("phone-number", this.phone_number);
+        editor.putString(Memory.PHONE_NUMBER_KEY, this.phone_number);
         editor.apply();
         Log.d("BlackList", "Phone Number Hint " + this.phone_number);
         instance = new appFirebase(ctx, this.phone_number);
