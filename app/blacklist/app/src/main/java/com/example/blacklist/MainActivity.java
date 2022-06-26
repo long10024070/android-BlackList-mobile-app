@@ -15,6 +15,7 @@ import android.util.Log;
 import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.blacklist.Service.BlackListService;
 import com.example.blacklist.Telephone.BlackList;
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications, R.id.navigation_my_black_list)
+                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications, R.id.navigation_my_black_list,R.id.navigation_profile)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
@@ -180,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
     public void blockNumber(View view) {
         EditText phoneNumber = findViewById(R.id.BlockNumber);
         BlackList.getInstance(this).putBlockedNumber(phoneNumber.getText().toString());
+        Toast.makeText(this ,"Block successfully!", Toast.LENGTH_SHORT).show();
     }
 
     public void fetchCallLog() {
