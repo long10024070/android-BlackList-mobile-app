@@ -2,16 +2,15 @@ package com.example.blacklist;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.role.RoleManager;
-import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CallLog;
-import android.provider.BlockedNumberContract;
 import android.util.Log;
 import android.provider.ContactsContract;
 import android.view.View;
@@ -19,18 +18,21 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.blacklist.Service.BlackListService;
-import com.example.blacklist.Telephone.BasicMobile;
 import com.example.blacklist.Telephone.BlackList;
+import com.example.blacklist.database.appFirebase;
 import com.example.blacklist.ui.Contact.ContactModel;
 import com.example.blacklist.ui.CallLogModel.CallLogItem;
+import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
+import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -41,13 +43,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    static final int REQUEST_CODE = 7777777;
+
     private ActivityMainBinding binding;
-    //private RecyclerView revCallLog ;
-    private List<CallLogItem> callLogList  ;
+
+    private List<CallLogItem> callLogList;
     private List<ContactModel> contactList;
 
-    private BlackListService mService;
-    private boolean mBound = false;
+    private static Boolean PermissionSignal = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,24 +74,82 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        // Request Default Call app
-        requestRoleDialer();
-
-        // Request to access call log
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS}, PackageManager.PERMISSION_GRANTED);
-//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED)
-//                finish();
-            requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
-            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
-            requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_NUMBERS);
+        // Request permission
+        List<String> permissions = new ArrayList<>();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED)
+            permissions.add(Manifest.permission.READ_CALL_LOG);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+            permissions.add(Manifest.permission.READ_CONTACTS);
+        if (permissions.size() > 0) {
+            String[] permission_strings = new String[permissions.size()];
+            ActivityCompat.requestPermissions(
+                    this,
+                    permissions.toArray(permission_strings),
+                    REQUEST_CODE
+            );
         }
 
-        // Start Blacklist auto config with Database at every moment (if not started)
-        Intent serviceIntent = new Intent(this, BlackListService.class);
-        this.startForegroundService(serviceIntent);
+        // Request Default Call app
+        RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+        if (!roleManager.isRoleHeld(RoleManager.ROLE_DIALER)) {
+            requestRoleDialer();
+        }
+
+        // Request Phone Number
+        RequestPhoneNumberIFNEEDDED();
+
+        // Start Service
+//        if (FullPermissionRole()) {
+//            Intent serviceIntent = new Intent(this, BlackListService.class);
+//            this.startForegroundService(serviceIntent);
+//        }
+    }
+
+    public boolean FullPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED)
+            return false;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+            return false;
+        return true;
+    }
+
+    public boolean FullRole() {
+        RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+        if (!roleManager.isRoleHeld(RoleManager.ROLE_DIALER))
+            return false;
+        return true;
+    }
+
+    public boolean FullPermissionRole() {
+        return FullPermission() && FullRole();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE) {// If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted. Continue the action or workflow
+                // in your app.
+                if (FullPermissionRole()) {
+//                    RequestPhoneNumberIFNEEDDED();
+                    Context ctx = MainActivity.this;
+                    Intent serviceIntent = new Intent(ctx, BlackListService.class);
+                    ctx.startForegroundService(serviceIntent);
+                }
+            } else {
+                // Explain to the user that the feature is unavailable because
+                // the features requires a permission that the user has denied.
+                // At the same time, respect the user's decision. Don't link to
+                // system settings in an effort to convince the user to change
+                // their decision.
+                finish();
+            }
+        }
+        // Other 'case' lines to check for other
+        // permissions this app might request.
     }
 
     public void requestRoleDialer() {
@@ -97,13 +158,19 @@ public class MainActivity extends AppCompatActivity {
         startActivityResultLauncher.launch(intent);
     }
 
-    ActivityResultLauncher<Intent> startActivityResultLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<Intent> startActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if (result != null && result.getResultCode() == android.app.Activity.RESULT_OK) {
                         // Your app is now the default dialer app
+                        if (FullPermissionRole()) {
+//                            RequestPhoneNumberIFNEEDDED();
+                            Context ctx = MainActivity.this;
+                            Intent serviceIntent = new Intent(ctx, BlackListService.class);
+                            ctx.startForegroundService(serviceIntent);
+                        }
                     } else {
                         // Your app is not the default dialer app
                         finish();
@@ -111,51 +178,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    private ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
-                } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
-                    finish();
-                }
-            });
-
     public void blockNumber(View view) {
         EditText phoneNumber = findViewById(R.id.BlockNumber);
         BlackList.getInstance(this).putBlockedNumber(phoneNumber.getText().toString());
-        ContentValues values = new ContentValues();
-        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, phoneNumber.getText().toString());
-        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
         Toast.makeText(this ,"Block successfully!", Toast.LENGTH_SHORT).show();
-
     }
-
-    public void enterBlockNumber(View view) {
-        final String defaulContent = "Enter Number to Block";
-        EditText phoneNumber = findViewById(R.id.BlockNumber);
-        phoneNumber.getText().clear();
-    }
-
-    public void callNumber(View view) {
-        EditText phoneNumber = findViewById(R.id.BlockNumber);
-        BasicMobile.MakeCall(this, phoneNumber.getText().toString());
-    }
-
-    public void pushBlockedNumber(View view) {
-
-    }
-
-    public void pullBlockedNumber(View view) {
-
-    }
-
 
     public void fetchCallLog() {
         String sortOrder = android.provider.CallLog.Calls.DATE + " DESC" ;
@@ -256,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
             cursor.close();
         }
     }
+
     public List<CallLogItem> getMyCallLog() {
         return callLogList;
     }
@@ -264,4 +292,51 @@ public class MainActivity extends AppCompatActivity {
         return contactList;
     }
 
+    private void RequestPhoneNumber() {
+        GetPhoneNumberHintIntentRequest request = GetPhoneNumberHintIntentRequest.builder().build();
+
+        ActivityResultLauncher<IntentSenderRequest> phoneNumberHintIntentResultLauncher =
+                registerForActivityResult(
+                        new ActivityResultContracts.StartIntentSenderForResult(),
+                        new ActivityResultCallback<ActivityResult>() {
+                            @Override
+                            public void onActivityResult(ActivityResult result) {
+                                try {
+                                    String phoneNumber = Identity.getSignInClient(MainActivity.this).getPhoneNumberFromIntent(result.getData());
+                                    SharedPreferences sharedPref = MainActivity.this.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = sharedPref.edit();
+                                    editor.putString(Memory.PHONE_NUMBER_KEY, appFirebase.standartNumber(phoneNumber));
+                                    editor.apply();
+                                    if (FullPermissionRole()) {
+                                        appFirebase db = appFirebase.getInstance(MainActivity.this);
+                                        db.setPhone_number(phoneNumber);
+                                    }
+
+                                } catch (Exception e) {
+                                    Log.e("BlackList", "Phone Number Hint failed");
+                                }
+                            }
+                        });
+
+        Identity.getSignInClient(this)
+                .getPhoneNumberHintIntent(request)
+                .addOnSuccessListener( result -> {
+                    try {
+                        IntentSenderRequest isd = new IntentSenderRequest.Builder(result.getIntentSender()).build();
+                        phoneNumberHintIntentResultLauncher.launch(isd);
+                    } catch(Exception e) {
+                        Log.e("BlackList", "Launching the PendingIntent failed", e);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("BlackList", "Phone Number Hint failed", e);
+                });;
+    }
+
+    public void RequestPhoneNumberIFNEEDDED() {
+        SharedPreferences sharedPref = this.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+        String phone_number = sharedPref.getString(Memory.PHONE_NUMBER_KEY, appFirebase.DEFAULT_PHONE_NUMBER);
+        if (phone_number.equals(appFirebase.DEFAULT_PHONE_NUMBER))
+            RequestPhoneNumber();
+    }
 }

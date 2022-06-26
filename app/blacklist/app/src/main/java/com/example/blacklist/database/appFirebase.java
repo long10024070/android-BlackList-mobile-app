@@ -3,6 +3,7 @@ package com.example.blacklist.database;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -10,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.example.blacklist.MainActivity;
+import com.example.blacklist.Memory;
 import com.example.blacklist.Telephone.BlackList;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,15 +32,17 @@ public class appFirebase {
     private static final String IN_BLACKLIST = "BlackNumber";
     private static final String IN_WHITELIST = "WhiteNumber";
     private static final String SUBCRIBE = "IsSubcribe";
-    private static final String UNSUBCRIBE = "NoSubcribe";
 
     private static appFirebase instance = null;
 
     private static final FirebaseDatabase database = FirebaseDatabase.getInstance("https://blacklist-49ebb-default-rtdb.asia-southeast1.firebasedatabase.app");
     private static DatabaseReference db = null;
     private static DatabaseReference numberDB = null;
+    private static ValueEventListener listenerNumberDB;
     private static DatabaseReference subcribeDB = null;
+    private static ValueEventListener listenerSubcribeDB;
     private static Map<String, ValueEventListener> listenerMap;
+    private static boolean ONE_listenerNumberDB = false;
 
     private static BlackList blackList = null;
     private static Set<String> myblacklist;
@@ -45,22 +50,24 @@ public class appFirebase {
     private static Map<String, Set<String>> subcribeBlacklist;
     private static Map<String, Integer> subcribeBlacklistcount;
 
-    private Context ctx = null;
+    private Context ctx;
     private String phone_number = DEFAULT_PHONE_NUMBER;
 
-    private appFirebase(Context context) {
+    private appFirebase(Context context, String _phone_number) {
         Log.d("BlackList", "NEW appFirebase Instance");
         ctx = context;
-        TelephonyManager tMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
-            return;
+
+//        database.setPersistenceEnabled(true);
+
+        if (_phone_number.equals(DEFAULT_PHONE_NUMBER)) {
+            SharedPreferences sharedPref = ctx.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+            _phone_number = sharedPref.getString(Memory.PHONE_NUMBER_KEY, appFirebase.DEFAULT_PHONE_NUMBER);
         }
-        phone_number = tMgr.getLine1Number();
+
+        phone_number = _phone_number;
         if (phone_number == null || phone_number.equals(""))
             phone_number = DEFAULT_PHONE_NUMBER;
 
-        phone_number = phone_number.replace("+","");
-        database.setPersistenceEnabled(true);
         db = database.getReference("userdata/" + phone_number);
         db.keepSynced(true);
         numberDB = db.child("numbers");
@@ -73,10 +80,18 @@ public class appFirebase {
         subcribeBlacklist = new TreeMap<>();
         subcribeBlacklistcount = new TreeMap<>();
 
-        numberDB.addValueEventListener(new ValueEventListener() {
+        listenerNumberDB = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Log.w("BlackList", ""+snapshot.getValue());
+                if (phone_number.equals(DEFAULT_PHONE_NUMBER)) {
+                    Log.w("BlackList", "" + ONE_listenerNumberDB);
+                    if (ONE_listenerNumberDB) {
+                        return;
+                    } else {
+                        ONE_listenerNumberDB = true;
+                    }
+                }
                 Map<String, String> map = extractData(""+snapshot.getValue());
                 for (Map.Entry<String, String> pair : map.entrySet()) {
                     if (pair.getValue().equals(IN_BLACKLIST)) {
@@ -124,99 +139,143 @@ public class appFirebase {
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
-        });
+        };
+        numberDB.addValueEventListener(listenerNumberDB);
 
-        subcribeDB.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Log.w("BlackList", "Subcribe " + snapshot.getValue());
-                Map<String, String> map = extractData(""+snapshot.getValue());
-                for (Map.Entry<String, String> pair : map.entrySet()) {
-                    if (pair.getValue().equals(SUBCRIBE)) {
-                        String subcribeNumber = pair.getKey();
-                        if (!subcribeBlacklist.containsKey(subcribeNumber)) {
-                            subcribeBlacklist.put(subcribeNumber, new TreeSet<>());
-                            listenerMap.put(subcribeNumber, new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    Log.w("BlackList", "Number " + subcribeNumber + ": " + snapshot.getValue());
-                                    Map<String, String> map = extractData(""+snapshot.getValue());
-                                    Set<String> subBlacklist = new TreeSet<>();
-                                    for (Map.Entry<String, String> pair : map.entrySet()) {
-                                        if (pair.getValue().equals(IN_BLACKLIST))
-                                            subBlacklist.add(pair.getKey());
-                                    }
-                                    List<String> deleteNumber = new ArrayList<>();
-                                    for (String number : subcribeBlacklist.get(subcribeNumber)) {
-                                        if (!subBlacklist.contains(number)) {
-                                            deleteNumber.add(number);
+        if (!phone_number.equals(DEFAULT_PHONE_NUMBER)) {
+            listenerSubcribeDB = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Log.w("BlackList", "Subcribe " + snapshot.getValue());
+                    Map<String, String> map = extractData("" + snapshot.getValue());
+                    for (Map.Entry<String, String> pair : map.entrySet()) {
+                        if (pair.getValue().equals(SUBCRIBE)) {
+                            String subcribeNumber = pair.getKey();
+                            if (!subcribeBlacklist.containsKey(subcribeNumber)) {
+                                subcribeBlacklist.put(subcribeNumber, new TreeSet<>());
+                                listenerMap.put(subcribeNumber, new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        Log.w("BlackList", "Number " + subcribeNumber + ": " + snapshot.getValue());
+                                        Map<String, String> map = extractData("" + snapshot.getValue());
+                                        Set<String> subBlacklist = new TreeSet<>();
+                                        for (Map.Entry<String, String> pair : map.entrySet()) {
+                                            if (pair.getValue().equals(IN_BLACKLIST))
+                                                subBlacklist.add(pair.getKey());
                                         }
-                                    }
-                                    for (String number: deleteNumber) {
-                                        subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number)-1);
-                                        if (subcribeBlacklistcount.get(number) == 0) {
-                                            subcribeBlacklistcount.remove(number);
-                                            if (!myblacklist.contains(number))
-                                                blackList.noDBdeleteBlockedNumber(number);
-                                        }
-                                    }
-                                    for (String number : subBlacklist) {
-                                        if (!subcribeBlacklist.get(subcribeNumber).contains(number)) {
-                                            subcribeBlacklist.get(subcribeNumber).add(number);
-                                            if (!subcribeBlacklistcount.containsKey(number)) {
-                                                subcribeBlacklistcount.put(number, 1);
-                                                if (!mywhitelist.contains(number))
-                                                    blackList.noDBputBlockedNumber(number);
-                                            }
-                                            else {
-                                                subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number)+1);
+                                        List<String> deleteNumber = new ArrayList<>();
+                                        for (String number : subcribeBlacklist.get(subcribeNumber)) {
+                                            if (!subBlacklist.contains(number)) {
+                                                deleteNumber.add(number);
                                             }
                                         }
+                                        for (String number : deleteNumber) {
+                                            subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number) - 1);
+                                            if (subcribeBlacklistcount.get(number) == 0) {
+                                                subcribeBlacklistcount.remove(number);
+                                                if (!myblacklist.contains(number))
+                                                    blackList.noDBdeleteBlockedNumber(number);
+                                            }
+                                        }
+                                        for (String number : subBlacklist) {
+                                            if (!subcribeBlacklist.get(subcribeNumber).contains(number)) {
+                                                subcribeBlacklist.get(subcribeNumber).add(number);
+                                                if (!subcribeBlacklistcount.containsKey(number)) {
+                                                    subcribeBlacklistcount.put(number, 1);
+                                                    if (!mywhitelist.contains(number))
+                                                        blackList.noDBputBlockedNumber(number);
+                                                } else {
+                                                    subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number) + 1);
+                                                }
+                                            }
+                                        }
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
 
-                                }
-                            });
-                            db.getParent().child(subcribeNumber).child("numbers").addValueEventListener(listenerMap.get(subcribeNumber));
-                        }
-                    }
-                }
-                List<String> deleteSubcribe = new ArrayList<>();
-                for (Map.Entry<String, Set<String>> pair : subcribeBlacklist.entrySet()) {
-                    String subcribeNumber = pair.getKey();
-                    if (!map.containsKey(subcribeNumber)) {
-                        deleteSubcribe.add(subcribeNumber);
-                    }
-                }
-                for (String subcribeNumber : deleteSubcribe) {
-                    for (String number : subcribeBlacklist.get(subcribeNumber)) {
-                        subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number) - 1);
-                        if (subcribeBlacklistcount.get(number) <= 0) {
-                            if (!myblacklist.contains(number)) {
-                                blackList.noDBdeleteBlockedNumber(number);
+                                    }
+                                });
+                                db.getParent().child(subcribeNumber).child("numbers").addValueEventListener(listenerMap.get(subcribeNumber));
                             }
-                            subcribeBlacklistcount.remove(number);
                         }
                     }
-                    subcribeBlacklist.remove(subcribeNumber);
-                    db.getParent().child(subcribeNumber).child("numbers").removeEventListener(listenerMap.get(subcribeNumber));
-                    listenerMap.remove(subcribeNumber);
+                    List<String> deleteSubcribe = new ArrayList<>();
+                    for (Map.Entry<String, Set<String>> pair : subcribeBlacklist.entrySet()) {
+                        String subcribeNumber = pair.getKey();
+                        if (!map.containsKey(subcribeNumber)) {
+                            deleteSubcribe.add(subcribeNumber);
+                        }
+                    }
+                    for (String subcribeNumber : deleteSubcribe) {
+                        for (String number : subcribeBlacklist.get(subcribeNumber)) {
+                            subcribeBlacklistcount.put(number, subcribeBlacklistcount.get(number) - 1);
+                            if (subcribeBlacklistcount.get(number) <= 0) {
+                                if (!myblacklist.contains(number)) {
+                                    blackList.noDBdeleteBlockedNumber(number);
+                                }
+                                subcribeBlacklistcount.remove(number);
+                            }
+                        }
+                        subcribeBlacklist.remove(subcribeNumber);
+                        db.getParent().child(subcribeNumber).child("numbers").removeEventListener(listenerMap.get(subcribeNumber));
+                        listenerMap.remove(subcribeNumber);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+                }
+            };
+            subcribeDB.addValueEventListener(listenerSubcribeDB);
+        }
+    }
+
+    public static String standartNumber(String _number) {
+        String number = "";
+        for (char c : _number.toCharArray())
+            if ('0' <= c && c <= '9')
+                number += c;
+        return number;
+    }
+
+    public String getPhone_number() {
+        return new String(phone_number);
+    }
+
+    public void setPhone_number(String phone_number) {
+        db.keepSynced(false);
+        numberDB.removeEventListener(listenerNumberDB);
+        if (!this.phone_number.equals(DEFAULT_PHONE_NUMBER))
+            subcribeDB.removeEventListener(listenerSubcribeDB);
+        for (Map.Entry<String, ValueEventListener> pair : listenerMap.entrySet()) {
+            String subcribeNumber = pair.getKey();
+            ValueEventListener listener = pair.getValue();
+            db.getParent().child(subcribeNumber).child("numbers").removeEventListener(listener);
+        }
+        BlackList blackList = BlackList.getInstance(ctx);
+        if (this.phone_number.equals(DEFAULT_PHONE_NUMBER)) {
+            for (String blockedNumber : myblacklist)
+                blackList.noDBdeleteBlockedNumber(blockedNumber);
+        }
+        for (Map.Entry<String, Integer> pair : subcribeBlacklistcount.entrySet()) {
+            String blockedNumber = pair.getKey();
+            if (!myblacklist.contains(blockedNumber))
+                blackList.noDBdeleteBlockedNumber(blockedNumber);
+        }
+        this.phone_number = standartNumber(phone_number);
+        SharedPreferences sharedPref = ctx.getSharedPreferences(Memory.File, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(Memory.PHONE_NUMBER_KEY, this.phone_number);
+        editor.apply();
+        Log.d("BlackList", "Phone Number Hint " + this.phone_number);
+        instance = new appFirebase(ctx, this.phone_number);
     }
 
     public static appFirebase getInstance(Context context) {
         if (instance == null) {
-            instance = new appFirebase(context);
+            instance = new appFirebase(context, DEFAULT_PHONE_NUMBER);
         }
         return instance;
     }
@@ -236,13 +295,13 @@ public class appFirebase {
     public void subcribeUser(String user_number) {
         if (phone_number.equals(DEFAULT_PHONE_NUMBER))
             return;
-        subcribeDB.child(user_number).setValue(SUBCRIBE);
+        subcribeDB.child(standartNumber(user_number)).setValue(SUBCRIBE);
     }
 
     public void unsubcribeUser(String user_number) {
         if (phone_number.equals(DEFAULT_PHONE_NUMBER))
             return;
-        subcribeDB.child(user_number).removeValue();
+        subcribeDB.child(standartNumber(user_number)).removeValue();
     }
 
     @NonNull

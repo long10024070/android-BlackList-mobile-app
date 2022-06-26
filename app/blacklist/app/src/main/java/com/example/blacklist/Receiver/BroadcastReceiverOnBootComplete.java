@@ -1,10 +1,16 @@
 package com.example.blacklist.Receiver;
 
+import android.Manifest;
+import android.app.role.RoleManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
+
+import com.example.blacklist.MainActivity;
 import com.example.blacklist.Service.BlackListService;
 
 public class BroadcastReceiverOnBootComplete extends BroadcastReceiver {

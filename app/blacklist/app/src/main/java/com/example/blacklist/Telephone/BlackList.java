@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BlockedNumberContract;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.blacklist.database.appFirebase;
 
@@ -48,16 +49,21 @@ public class BlackList {
         List<String> blacklist = getBlackListNumbers();
 
         appFirebase db = appFirebase.getInstance(ctx);
-        Set<String> myBlacklist = db.getMyblacklist();
-        Set<String> subcribeBlacklist = db.getMysubcribeBlacklist();
+        if (!db.getPhone_number().equals(appFirebase.DEFAULT_PHONE_NUMBER)) {
+            Set<String> myBlacklist = db.getMyblacklist();
+            Set<String> subcribeBlacklist = db.getMysubcribeBlacklist();
 
-        for (String number : blacklist) {
-            if (!myBlacklist.contains(number) && !subcribeBlacklist.contains(number)) {
-                myBlacklist.add(number);
-                putBlockedNumber(number);
+            for (String number : blacklist) {
+                if (!myBlacklist.contains(number) && !subcribeBlacklist.contains(number)) {
+                    myBlacklist.add(number);
+                    putBlockedNumber(number);
+                }
             }
+            return new ArrayList<>(myBlacklist);
         }
-        return new ArrayList<>(myBlacklist);
+        else {
+            return blacklist;
+        }
     }
 
     public List<String> getSubcribeNumbers() {

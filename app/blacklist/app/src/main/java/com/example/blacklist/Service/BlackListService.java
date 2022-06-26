@@ -1,15 +1,19 @@
 package com.example.blacklist.Service;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.example.blacklist.database.appFirebase;
@@ -32,6 +36,8 @@ public class BlackListService extends Service {
 
     @Override
     public void onCreate() {
+        if (!FullPermission())
+            stopSelf();
         buildNotification();
         super.onCreate();
         Log.w("BlackList", "SERVICE CREATE");
@@ -44,7 +50,7 @@ public class BlackListService extends Service {
         Log.w("BlackList", "SERVICE DETROY");
     }
 
-    private void buildNotification(){
+    private void buildNotification() {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
                 this, "default")
                 .setContentTitle("BlackList")
@@ -68,5 +74,24 @@ public class BlackListService extends Service {
         // Execution is reaching this line.
         int NOTIFICATION_ID = 123456;
         startForeground(NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    public boolean FullPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED)
+            return false;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+            return false;
+        return true;
+    }
+
+    public boolean FullRole() {
+        RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+        if (!roleManager.isRoleHeld(RoleManager.ROLE_DIALER))
+            return false;
+        return true;
+    }
+
+    public boolean FullPermissionRole() {
+        return FullPermission() && FullRole();
     }
 }
