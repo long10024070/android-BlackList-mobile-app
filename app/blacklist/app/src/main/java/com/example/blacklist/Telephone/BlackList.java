@@ -120,4 +120,10 @@ public class BlackList {
         appFirebase db = appFirebase.getInstance(ctx);
         db.unsubcribeUser(number);
     }
+
+    public boolean hasSubcribeUser(String user) {
+        appFirebase db = appFirebase.getInstance(ctx);
+        List<String> subcribe = db.getMySubcribe();
+        return subcribe.contains(user);
+    }
 }
